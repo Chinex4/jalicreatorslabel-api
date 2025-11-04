@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+    // IMPORTANT: remove "verbatimModuleSyntax" or set it to false
+    // "verbatimModuleSyntax": false
+  },
+  "include": ["src"]
+}
