@@ -9,11 +9,37 @@ import { z } from "zod";
 dotenv.config();
 
 const app = express();
-app.use(helmet());
-app.use(express.json({ limit: "1mb" }));
-app.use(cors({ origin: process.env.ALLOW_ORIGIN?.split(",") ?? "*" }));
 
-const limiter = rateLimit({ windowMs: 60_000, max: 30 });
+const allowed = (process.env.ALLOW_ORIGIN ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const corsOptions: cors.CorsOptions = {
+  origin(origin, cb) {
+    if (!origin) return cb(null, true);
+    if (allowed.includes(origin)) return cb(null, true);
+    return cb(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
+  credentials: false,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
+
+app.use(express.json({ limit: "1mb" }));
+
+// Apply after CORS/preflight so OPTIONS isn't rate-limited
+const limiter = rateLimit({ windowMs: 60_000, max: 30, standardHeaders: true });
 app.use(limiter);
 
 // Nodemailer transporter (Gmail SMTP)
